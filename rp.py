@@ -1,9 +1,13 @@
 #!/usr/bin/python3
 
+# Dependencies:
+# - python3-mutagen
+
 import os
 import time
 import datetime
 import argparse
+import mutagen
 
 def valid_date(date):
     try:
@@ -15,6 +19,9 @@ def valid_date(date):
 def get_date(file_path):
     mtime = os.path.getmtime(file_path)
     return time.strftime('%Y-%m-%d', time.localtime(mtime))
+
+def get_title(file_path):
+    return mutagen.File(file_path)['title'][0]
 
 parser = argparse.ArgumentParser()
 parser.add_argument('source')
@@ -49,7 +56,7 @@ if args.list_tracks:
         if os.path.isfile(file_path):
             if not args.date or get_date(file_path) == args.date:
                 total_tracks +=1
-                print(file_name)
+                print(get_title(file_path))
 
     if not args.date:
         print(f'Total tracks: {total_tracks}')
