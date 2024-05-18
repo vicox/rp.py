@@ -95,4 +95,4 @@ elif args.list_dates:
 
     for date in sorted(dates):
         print(f'{date} ({tracks_per_date[date]} tracks)')
-    print(f'Total dates: {len(dates)}')
+    print(f'Total dates: {len(dates)}, total tracks: {sum(tracks_per_date.values())}')
