@@ -25,6 +25,7 @@ def get_title(file_path):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('source')
+parser.add_argument('target')
 group = parser.add_mutually_exclusive_group()
 group.add_argument(
     '-lt',
@@ -47,6 +48,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 source = args.source
+target = args.target
 
 if args.list_tracks:
     total_tracks = 0
