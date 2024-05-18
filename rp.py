@@ -11,6 +11,10 @@ def valid_date(date):
         return date
     except ValueError:
         raise argparse.ArgumentTypeError(f"not a valid date: {date}")
+    
+def get_date(file_path):
+    mtime = os.path.getmtime(file_path)
+    return time.strftime('%Y-%m-%d', time.localtime(mtime))
 
 parser = argparse.ArgumentParser()
 parser.add_argument('source')
@@ -36,19 +40,16 @@ parser.add_argument(
 args = parser.parse_args()
 
 source = args.source
-    
-def get_date(filename):
-    path = os.path.join(source, filename)
-    mtime = os.path.getmtime(path)
-    return time.strftime('%Y-%m-%d', time.localtime(mtime))
 
 if args.list_tracks:
     total_tracks = 0
 
-    for filename in os.listdir(source):
-        if not args.date or get_date(filename) == args.date:
-            total_tracks +=1
-            print(filename)
+    for file_name in os.listdir(source):
+        file_path = os.path.join(source, file_name)
+        if os.path.isfile(file_path):
+            if not args.date or get_date(file_path) == args.date:
+                total_tracks +=1
+                print(file_name)
 
     if not args.date:
         print(f'Total tracks: {total_tracks}')
@@ -58,13 +59,15 @@ elif args.list_dates:
     dates = set()
     tracks_per_date = dict()
 
-    for filename in os.listdir(source):
-        date = get_date(filename)
-        dates.add(date)
-        if date not in tracks_per_date:
-            tracks_per_date[date] = 1
-        else:
-            tracks_per_date[date] += 1
+    for file_name in os.listdir(source):
+        file_path = os.path.join(source, file_name)
+        if os.path.isfile(file_path):
+            date = get_date(file_path)
+            dates.add(date)
+            if date not in tracks_per_date:
+                tracks_per_date[date] = 1
+            else:
+                tracks_per_date[date] += 1
 
     if(args.date):
         dates = dates.intersection({args.date})
