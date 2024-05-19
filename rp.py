@@ -92,7 +92,7 @@ if args.list_tracks:
     for artist_and_title, tracks in source_list.items():
         date = tracks[-1]['date']
         total_tracks +=1
-        print(f'({date}) {artist_and_title}')
+        print(f'[{', '.join(list(map(lambda x: x['date'], tracks)))}] {artist_and_title}')
 
     print(f'Total tracks: {total_tracks}')
 elif args.list_dates:
