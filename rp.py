@@ -41,19 +41,6 @@ def get_title(file_path):
 parser = argparse.ArgumentParser()
 parser.add_argument('source')
 parser.add_argument('target')
-group = parser.add_mutually_exclusive_group()
-group.add_argument(
-    '-lt',
-    '--list-tracks',
-    action='store_true',
-    help='list all tracks'
-)
-group.add_argument(
-    '-ld',
-    '--list-dates',
-    action='store_true',
-    help='list all dates with number of tracks'
-)
 parser.add_argument(
     '--max-date',
     type=valid_date,
@@ -86,27 +73,19 @@ for file_name in os.listdir(source):
                 "date": get_date(file_path),
             }, key=lambda x: x["date"])
 
-if args.list_tracks:
-    total_tracks = 0
+dates = set()
+tracks_per_date = dict()
+total_tracks = 0
 
-    for artist_and_title, tracks in source_list.items():
-        date = tracks[-1]['date']
-        total_tracks +=1
-        print(f'[{', '.join(list(map(lambda x: x['date'], tracks)))}] {artist_and_title}')
+for artist_and_title, tracks in source_list.items():
+    date = tracks[-1]['date']
+    dates.add(date)
+    if date not in tracks_per_date:
+        tracks_per_date[date] = 1
+    else:
+        tracks_per_date[date] += 1
+    total_tracks +=1
+    print(f'[{', '.join(list(map(lambda x: x['date'], tracks)))}] {artist_and_title}')
 
-    print(f'Total tracks: {total_tracks}')
-elif args.list_dates:
-    dates = set()
-    tracks_per_date = dict()
-
-    for artist_and_title, tracks in source_list.items():
-        date = tracks[-1]['date']
-        dates.add(date)
-        if date not in tracks_per_date:
-            tracks_per_date[date] = 1
-        else:
-            tracks_per_date[date] += 1
-
-    for date in sorted(dates):
-        print(f'{date} ({tracks_per_date[date]} tracks)')
-    print(f'Total dates: {len(dates)}, total tracks: {sum(tracks_per_date.values())}')
+print(f'Tracks per date:\n{'\n'.join(list(map(lambda x: f'{x} ({tracks_per_date[x]})', sorted(dates))))}')
+print(f'Total tracks: {total_tracks}')
