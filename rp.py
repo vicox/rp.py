@@ -41,10 +41,14 @@ group.add_argument(
     help='list all dates with number of tracks'
 )
 parser.add_argument(
-    '-d',
-    '--date',
+    '--max-date',
     type=valid_date,
-    help='specify the date with YYYY-MM-DD'
+    help='ignore tracks after YYYY-MM-DD'
+)
+parser.add_argument(
+    '--min-date',
+    type=valid_date,
+    help='ignore tracks before YYYY-MM-DD'
 )
 args = parser.parse_args()
 
@@ -57,27 +61,26 @@ target_list = dict()
 for file_name in os.listdir(source):
     file_path = os.path.join(source, file_name)
     if os.path.isfile(file_path):
-        artist_and_title = get_title(file_path)
-        if artist_and_title not in source_list:
-            source_list[artist_and_title] = list()
-        bisect.insort(source_list[artist_and_title], {
-            "file_path": file_path,
-            "date": get_date(file_path),
-        }, key=lambda x: x["date"])
+        date = get_date(file_path)
+        if ((not args.min_date or date >= args.min_date)
+                and (not args.max_date or date <= args.max_date)):
+            artist_and_title = get_title(file_path)
+            if artist_and_title not in source_list:
+                source_list[artist_and_title] = list()
+            bisect.insort(source_list[artist_and_title], {
+                "file_path": file_path,
+                "date": get_date(file_path),
+            }, key=lambda x: x["date"])
 
 if args.list_tracks:
     total_tracks = 0
 
     for artist_and_title, tracks in source_list.items():
         date = tracks[0]['date']
-        if not args.date or date == args.date:
-                total_tracks +=1
-                print(f'({date}) {artist_and_title}')
+        total_tracks +=1
+        print(f'({date}) {artist_and_title}')
 
-    if not args.date:
-        print(f'Total tracks: {total_tracks}')
-    else:
-        print(f'Total tracks ({args.date}): {total_tracks}')
+    print(f'Total tracks: {total_tracks}')
 elif args.list_dates:
     dates = set()
     tracks_per_date = dict()
@@ -89,9 +92,6 @@ elif args.list_dates:
             tracks_per_date[date] = 1
         else:
             tracks_per_date[date] += 1
-
-    if(args.date):
-        dates = dates.intersection({args.date})
 
     for date in sorted(dates):
         print(f'{date} ({tracks_per_date[date]} tracks)')
