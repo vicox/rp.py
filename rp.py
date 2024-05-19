@@ -90,7 +90,7 @@ if args.list_tracks:
     total_tracks = 0
 
     for artist_and_title, tracks in source_list.items():
-        date = tracks[0]['date']
+        date = tracks[-1]['date']
         total_tracks +=1
         print(f'({date}) {artist_and_title}')
 
@@ -100,7 +100,7 @@ elif args.list_dates:
     tracks_per_date = dict()
 
     for artist_and_title, tracks in source_list.items():
-        date = tracks[0]['date']
+        date = tracks[-1]['date']
         dates.add(date)
         if date not in tracks_per_date:
             tracks_per_date[date] = 1
