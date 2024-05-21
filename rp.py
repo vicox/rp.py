@@ -51,6 +51,11 @@ parser.add_argument(
     type=valid_date,
     help='ignore tracks before YYYY-MM-DD'
 )
+parser.add_argument(
+    '--ignore-title',
+    nargs='*',
+    help='track title(s) to ignore'
+)
 args = parser.parse_args()
 
 source = args.source
@@ -66,12 +71,13 @@ for file_name in os.listdir(source):
         if ((not args.min_date or date >= args.min_date)
                 and (not args.max_date or date <= args.max_date)):
             artist_and_title = get_title(file_path)
-            if artist_and_title not in source_list:
-                source_list[artist_and_title] = list()
-            bisect.insort(source_list[artist_and_title], {
-                "file_path": file_path,
-                "date": get_date(file_path),
-            }, key=lambda x: x["date"])
+            if not args.ignore_title or artist_and_title not in args.ignore_title:
+                if artist_and_title not in source_list:
+                    source_list[artist_and_title] = list()
+                bisect.insort(source_list[artist_and_title], {
+                    "file_path": file_path,
+                    "date": get_date(file_path),
+                }, key=lambda x: x["date"])
 
 dates = set()
 tracks_per_date = dict()
