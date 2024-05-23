@@ -22,7 +22,9 @@ import time
 import datetime
 import bisect 
 import argparse
+import shutil
 import mutagen
+from pathvalidate import sanitize_filename
 
 def valid_date(date):
     try:
@@ -37,6 +39,17 @@ def get_date(file_path):
 
 def get_title(file_path):
     return mutagen.File(file_path)['title'][0]
+
+def set_meta(file_path, title, artist, album, genre):
+    mtime = os.path.getmtime(file_path)
+    atime = os.path.getatime(file_path)
+    audio = mutagen.File(file_path)
+    audio['title'] = title
+    audio['artist'] = artist
+    audio['album'] = album
+    audio['genre'] = genre
+    audio.save()
+    os.utime(file_path, (atime, mtime))
 
 parser = argparse.ArgumentParser()
 parser.add_argument('source')
@@ -67,6 +80,16 @@ parser.add_argument(
     nargs='*',
     help='track title(s) to ignore'
 )
+parser.add_argument(
+    '--album',
+    required=True,
+    help='album to be written into the track file'
+)
+parser.add_argument(
+    '--genre',
+    required=True,
+    help='genre to be written into the track file'
+)
 args = parser.parse_args()
 
 source = args.source
@@ -91,7 +114,13 @@ for file_name in os.listdir(source):
                 }, key=lambda x: x["date"])
 
 if args.copy:
-    print('not implemented yet')
+    for artist_and_title, tracks in source_list.items():
+        track = tracks[-1]
+        target_file_path = os.path.join(target, sanitize_filename(f'{artist_and_title}.ogg'))
+        shutil.copy2(track['file_path'], target_file_path)
+        split = artist_and_title.split(' - ', 1)
+        set_meta(target_file_path, split[1], split[0], args.album, args.genre)
+
 elif args.move:
     print('not implemented yet')
 else:
