@@ -129,6 +129,21 @@ for file_name in os.listdir(source):
             else:
                 print(f'ignoring {file_name}')
 
+for file_name in os.listdir(target):
+    file_path = os.path.join(target, file_name)
+    if os.path.isfile(file_path):
+        mtime = os.path.getmtime(file_path)
+        date = time.strftime('%Y-%m-%d', time.localtime(mtime))
+        title = get_meta(file_path)['title']
+        artist = get_meta(file_path)['artist']
+        target_list[f'{artist} - {title}'] = {
+            "file_path": file_path,
+            "mtime": mtime,
+            "date": date,
+            "title": title,
+            "artist": artist,
+        }
+
 if args.copy:
     for artist_and_title, tracks in source_list.items():
         track = tracks[-1]
