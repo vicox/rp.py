@@ -33,6 +33,13 @@ def valid_date(date):
     except ValueError:
         raise argparse.ArgumentTypeError(f"not a valid date: {date}")
 
+def split_artist_and_title(artist_and_title):
+    title = None
+    artist = None
+    if ' - ' in artist_and_title:
+        artist, title = artist_and_title.split(' - ', 1)
+    return title, artist
+
 def get_meta(file_path):
     audio = mutagen.File(file_path)
     return {
@@ -108,9 +115,7 @@ for file_name in os.listdir(source):
         if ((not args.min_date or date >= args.min_date)
                 and (not args.max_date or date <= args.max_date)):
             artist_and_title = get_meta(file_path)['title']
-            split = artist_and_title.split(' - ', 1)
-            title = split[1]
-            artist = split[0]
+            title, artist = split_artist_and_title(artist_and_title)
             if title and artist and (not args.ignore_title or artist_and_title not in args.ignore_title):
                 if artist_and_title not in source_list:
                     source_list[artist_and_title] = list()
