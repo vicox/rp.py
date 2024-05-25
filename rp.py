@@ -32,10 +32,6 @@ def valid_date(date):
         return date
     except ValueError:
         raise argparse.ArgumentTypeError(f"not a valid date: {date}")
-    
-def get_date(file_path):
-    mtime = os.path.getmtime(file_path)
-    return time.strftime('%Y-%m-%d', time.localtime(mtime))
 
 def get_title(file_path):
     return mutagen.File(file_path)['title'][0]
@@ -101,7 +97,8 @@ target_list = dict()
 for file_name in os.listdir(source):
     file_path = os.path.join(source, file_name)
     if os.path.isfile(file_path):
-        date = get_date(file_path)
+        mtime = os.path.getmtime(file_path)
+        date = time.strftime('%Y-%m-%d', time.localtime(mtime))
         if ((not args.min_date or date >= args.min_date)
                 and (not args.max_date or date <= args.max_date)):
             artist_and_title = get_title(file_path)
@@ -113,10 +110,11 @@ for file_name in os.listdir(source):
                     source_list[artist_and_title] = list()
                 bisect.insort(source_list[artist_and_title], {
                     "file_path": file_path,
+                    "mtime": mtime,
+                    "date": date,
                     "title": title,
                     "artist": artist,
-                    "date": get_date(file_path),
-                }, key=lambda x: x["date"])
+                }, key=lambda x: x["mtime"])
             else:
                 print(f'ignoring {file_name}')
 
