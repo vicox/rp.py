@@ -105,21 +105,29 @@ for file_name in os.listdir(source):
         if ((not args.min_date or date >= args.min_date)
                 and (not args.max_date or date <= args.max_date)):
             artist_and_title = get_title(file_path)
-            if not args.ignore_title or artist_and_title not in args.ignore_title:
+            split = artist_and_title.split(' - ', 1)
+            title = split[1]
+            artist = split[0]
+            if title and artist and (not args.ignore_title or artist_and_title not in args.ignore_title):
                 if artist_and_title not in source_list:
                     source_list[artist_and_title] = list()
                 bisect.insort(source_list[artist_and_title], {
                     "file_path": file_path,
+                    "title": title,
+                    "artist": artist,
                     "date": get_date(file_path),
                 }, key=lambda x: x["date"])
+            else:
+                print(f'ignoring {file_name}')
 
 if args.copy:
     for artist_and_title, tracks in source_list.items():
         track = tracks[-1]
-        target_file_path = os.path.join(target, sanitize_filename(f'{artist_and_title}.ogg'))
+        file_name = sanitize_filename(f'{artist_and_title}.ogg')
+        target_file_path = os.path.join(target, file_name)
+        print(f'copying {file_name}')
         shutil.copy2(track['file_path'], target_file_path)
-        split = artist_and_title.split(' - ', 1)
-        set_meta(target_file_path, split[1], split[0], args.album, args.genre)
+        set_meta(target_file_path, track['title'], track['artist'], args.album, args.genre)
 
 elif args.move:
     print('not implemented yet')
