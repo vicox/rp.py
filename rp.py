@@ -33,8 +33,14 @@ def valid_date(date):
     except ValueError:
         raise argparse.ArgumentTypeError(f"not a valid date: {date}")
 
-def get_title(file_path):
-    return mutagen.File(file_path)['title'][0]
+def get_meta(file_path):
+    audio = mutagen.File(file_path)
+    return {
+        "title": audio['title'][0] if 'title' in audio else None,
+        "artist": audio['artist'][0] if 'artist' in audio else None,
+        "album": audio['album'][0] if 'album' in audio else None,
+        "genre": audio['genre'][0] if 'genre' in audio else None,
+    }
 
 def set_meta(file_path, title, artist, album, genre):
     mtime = os.path.getmtime(file_path)
@@ -101,7 +107,7 @@ for file_name in os.listdir(source):
         date = time.strftime('%Y-%m-%d', time.localtime(mtime))
         if ((not args.min_date or date >= args.min_date)
                 and (not args.max_date or date <= args.max_date)):
-            artist_and_title = get_title(file_path)
+            artist_and_title = get_meta(file_path)['title']
             split = artist_and_title.split(' - ', 1)
             title = split[1]
             artist = split[0]
