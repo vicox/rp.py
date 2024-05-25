@@ -159,6 +159,7 @@ else:
     dates = set()
     tracks_per_date = dict()
     total_tracks = 0
+    unique_tracks = 0
     new_tracks = 0
     existing_tracks = 0
 
@@ -169,12 +170,14 @@ else:
             tracks_per_date[date] = 1
         else:
             tracks_per_date[date] += 1
-        total_tracks +=1
+        
+        total_tracks += len(tracks)
+        unique_tracks += 1
 
         if (artist_and_title in target_list):
-            existing_tracks +=1
+            existing_tracks += 1
         else:
-            new_tracks +=1
+            new_tracks += 1
 
         track_status = ('new', 'existing')[artist_and_title in target_list]
         track_dates = list(map(lambda x: x['date'], tracks))
@@ -182,5 +185,6 @@ else:
 
     print(f'Tracks per date:\n{'\n'.join(list(map(lambda x: f'{x}: {tracks_per_date[x]}', sorted(dates))))}')
     print(f'Total tracks: {total_tracks}')
+    print(f'Unique tracks: {unique_tracks}')
     print(f'Existing tracks: {existing_tracks}')
     print(f'New tracks: {new_tracks}')
