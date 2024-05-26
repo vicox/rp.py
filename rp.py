@@ -25,6 +25,7 @@ import argparse
 import shutil
 import mutagen
 from pathvalidate import sanitize_filename
+import progressbar2
 
 def valid_date(date):
     try:
@@ -110,47 +111,56 @@ target_list = dict()
 no_title = 0
 ignored_titles = dict()
 
-for file_name in os.listdir(source):
-    file_path = os.path.join(source, file_name)
-    if os.path.isfile(file_path):
-        mtime = os.path.getmtime(file_path)
-        date = time.strftime('%Y-%m-%d', time.localtime(mtime))
-        if ((not args.min_date or date >= args.min_date)
-                and (not args.max_date or date <= args.max_date)):
-            artist_and_title = get_meta(file_path)['title']
-            title, artist = split_artist_and_title(artist_and_title)
-            if title and artist and (not args.ignore_title or artist_and_title not in args.ignore_title):
-                if artist_and_title not in source_list:
-                    source_list[artist_and_title] = list()
-                bisect.insort(source_list[artist_and_title], {
-                    "file_path": file_path,
-                    "mtime": mtime,
-                    "date": date,
-                    "title": title,
-                    "artist": artist,
-                }, key=lambda x: x["mtime"])
-            else:
-                if not title or not artist:
-                    no_title += 1
-                elif artist_and_title not in ignored_titles:
-                    ignored_titles[artist_and_title] = 1
-                else:
-                    ignored_titles[artist_and_title] += 1
+source_count = len([name for name in os.listdir(source)])
+target_count = len([name for name in os.listdir(target)])
 
-for file_name in os.listdir(target):
-    file_path = os.path.join(target, file_name)
-    if os.path.isfile(file_path):
-        mtime = os.path.getmtime(file_path)
-        date = time.strftime('%Y-%m-%d', time.localtime(mtime))
-        title = get_meta(file_path)['title']
-        artist = get_meta(file_path)['artist']
-        target_list[f'{artist} - {title}'] = {
-            "file_path": file_path,
-            "mtime": mtime,
-            "date": date,
-            "title": title,
-            "artist": artist,
-        }
+i = 0
+with progressbar2.ProgressBar(max_value=source_count + target_count) as bar:
+    for file_name in os.listdir(source):
+        file_path = os.path.join(source, file_name)
+        if os.path.isfile(file_path):
+            mtime = os.path.getmtime(file_path)
+            date = time.strftime('%Y-%m-%d', time.localtime(mtime))
+            if ((not args.min_date or date >= args.min_date)
+                    and (not args.max_date or date <= args.max_date)):
+                artist_and_title = get_meta(file_path)['title']
+                title, artist = split_artist_and_title(artist_and_title)
+                if title and artist and (not args.ignore_title or artist_and_title not in args.ignore_title):
+                    if artist_and_title not in source_list:
+                        source_list[artist_and_title] = list()
+                    bisect.insort(source_list[artist_and_title], {
+                        "file_path": file_path,
+                        "mtime": mtime,
+                        "date": date,
+                        "title": title,
+                        "artist": artist,
+                    }, key=lambda x: x["mtime"])
+                else:
+                    if not title or not artist:
+                        no_title += 1
+                    elif artist_and_title not in ignored_titles:
+                        ignored_titles[artist_and_title] = 1
+                    else:
+                        ignored_titles[artist_and_title] += 1
+        bar.update(i)
+        i += 1
+
+    for file_name in os.listdir(target):
+        file_path = os.path.join(target, file_name)
+        if os.path.isfile(file_path):
+            mtime = os.path.getmtime(file_path)
+            date = time.strftime('%Y-%m-%d', time.localtime(mtime))
+            title = get_meta(file_path)['title']
+            artist = get_meta(file_path)['artist']
+            target_list[f'{artist} - {title}'] = {
+                "file_path": file_path,
+                "mtime": mtime,
+                "date": date,
+                "title": title,
+                "artist": artist,
+            }
+        bar.update(i)
+        i += 1
 
 print('Ignored tracks:')
 print(f'No title ({no_title})')

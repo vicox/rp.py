@@ -6,3 +6,4 @@ rp.py helps you build an offline music library from the web.
 
 - python3-mutagen
 - python3-pathvalidate
+- python3-progressbar2
