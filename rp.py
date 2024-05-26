@@ -107,6 +107,9 @@ target = args.target
 source_list = dict()
 target_list = dict()
 
+no_title = 0
+ignored_titles = dict()
+
 for file_name in os.listdir(source):
     file_path = os.path.join(source, file_name)
     if os.path.isfile(file_path):
@@ -127,7 +130,12 @@ for file_name in os.listdir(source):
                     "artist": artist,
                 }, key=lambda x: x["mtime"])
             else:
-                print(f'ignoring {file_name}')
+                if not title or not artist:
+                    no_title += 1
+                elif artist_and_title not in ignored_titles:
+                    ignored_titles[artist_and_title] = 1
+                else:
+                    ignored_titles[artist_and_title] += 1
 
 for file_name in os.listdir(target):
     file_path = os.path.join(target, file_name)
@@ -143,6 +151,10 @@ for file_name in os.listdir(target):
             "title": title,
             "artist": artist,
         }
+
+print('Ignored tracks:')
+print(f'No title ({no_title})')
+print('\n'.join(list(map(lambda x: f'{x} ({ignored_titles[x]})', ignored_titles))))
 
 if args.copy:
     for artist_and_title, tracks in source_list.items():
