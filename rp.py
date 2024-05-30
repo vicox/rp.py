@@ -115,7 +115,7 @@ source_count = len([name for name in os.listdir(source)])
 target_count = len([name for name in os.listdir(target)])
 
 with progressbar2.ProgressBar(max_value=source_count + target_count, prefix='Scanning: ') as bar:
-i = 0
+    i = 0
     for file_name in sorted(os.listdir(source)):
         file_path = os.path.join(source, file_name)
         if os.path.isfile(file_path):
@@ -163,7 +163,7 @@ i = 0
         i += 1
 
 print('====================')
-print('Ignored Tracks')
+print('Ignored tracks')
 print('====================')
 print(f'No title ({no_title})')
 print('\n'.join(list(map(lambda x: f'{x} ({ignored_titles[x]})', ignored_titles))))
@@ -181,7 +181,7 @@ elif args.move:
     print('not implemented yet')
 else:
     print('\n====================')
-    print('Track Status')
+    print('Track status')
     print('====================')
 
     dates = set()
@@ -223,12 +223,12 @@ else:
         print(f'[{track_status}] {artist_and_title} ({', '.join(track_dates)})')
 
     print('\n====================')
-    print('Track Summary By Date')
+    print('Track summary by date')
     print('====================')
     print('\n'.join(list(map(lambda x: f'{x}: {f'{tracks_per_date[x]['total']} total, {tracks_per_date[x]['unique']} unique, {tracks_per_date[x]['existing']} existing, {tracks_per_date[x]['new']} new'}', sorted(dates)))))
     
     print('\n====================')
-    print('Track Summary')
+    print('Track summary')
     print('====================')
     print(f'Total tracks: {total_tracks}')
     print(f'Unique tracks: {unique_tracks}')
