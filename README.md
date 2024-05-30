@@ -112,4 +112,4 @@ Ignore tracks before YYYY-MM-DD.
 * Files are always stored in the target directory with `.ogg`, independent of the source file extensions.
 
 ---
-Logo designed by [Freepik](https://www.freepik.com) 
+<a href="https://www.freepik.com/free-vector/retro-music-tapes-set_9176300.htm#from_view=detail_alsolike">Image by pch.vector on Freepik</a>
