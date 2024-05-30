@@ -229,7 +229,7 @@ print(f'Unique tracks: {unique_tracks}')
 print(f'Existing tracks: {existing_tracks}')
 print(f'New tracks: {new_tracks}', flush=True)
 
-if args.copy:
+if args.copy or args.move:
     with progressbar2.ProgressBar(max_value=(new_tracks, unique_tracks)[args.overwrite == 'always'], prefix='Copying: ') as bar:
         i = 0
         for artist_and_title, tracks in source_list.items():
@@ -237,10 +237,10 @@ if args.copy:
                 track = tracks[(0, -1)[args.overwrite == 'always']]
                 file_name = sanitize_filename(f'{artist_and_title}.ogg')
                 target_file_path = os.path.join(target, file_name)
-                shutil.copy2(track['file_path'], target_file_path)
+                if args.copy:
+                    shutil.copy2(track['file_path'], target_file_path)
+                else:
+                    shutil.move(track['file_path'], target_file_path)
                 set_meta(target_file_path, track['title'], track['artist'], args.album, args.genre)
                 bar.update(i)
                 i += 1
-
-elif args.move:
-    print('not implemented yet')
