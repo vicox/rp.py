@@ -86,7 +86,7 @@ parser.add_argument(
     help='ignore tracks before YYYY-MM-DD'
 )
 parser.add_argument(
-    '--ignore-title',
+    '--ignore',
     nargs='*',
     help='track title(s) to ignore'
 )
@@ -125,7 +125,7 @@ with progressbar2.ProgressBar(max_value=source_count + target_count, prefix='Sca
                     and (not args.max_date or date <= args.max_date)):
                 artist_and_title = get_meta(file_path)['title']
                 title, artist = split_artist_and_title(artist_and_title)
-                if title and artist and (not args.ignore_title or artist_and_title not in args.ignore_title):
+                if title and artist and (not args.ignore or artist_and_title not in args.ignore):
                     if artist_and_title not in source_list:
                         source_list[artist_and_title] = list()
                     bisect.insort(source_list[artist_and_title], {
