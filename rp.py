@@ -56,8 +56,10 @@ def set_meta(file_path, title, artist, album, genre):
     audio = mutagen.File(file_path)
     audio['title'] = title
     audio['artist'] = artist
-    audio['album'] = album
-    audio['genre'] = genre
+    if album:
+        audio['album'] = album
+    if genre:
+        audio['genre'] = genre
     audio.save()
     os.utime(file_path, (atime, mtime))
 
@@ -103,13 +105,11 @@ parser.add_argument(
 parser.add_argument(
     '-a',
     '--album',
-    required=True,
     help='album name to be written into the track file'
 )
 parser.add_argument(
     '-g',
     '--genre',
-    required=True,
     help='genre to be written into the track file'
 )
 args = parser.parse_args()
