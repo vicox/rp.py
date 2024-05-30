@@ -66,16 +66,19 @@ parser.add_argument('source')
 parser.add_argument('target')
 group = parser.add_mutually_exclusive_group()
 group.add_argument(
+    '-c',
     '--copy',
     action='store_true',
     help='copy tracks from source to target'
 )
 group.add_argument(
+    '-m',
     '--move',
     action='store_true',
     help='move tracks from source to target'
 )
 parser.add_argument(
+    '-o',
     '--overwrite',
     choices=['always', 'never'],
     required=True,
@@ -92,16 +95,19 @@ parser.add_argument(
     help='ignore tracks before YYYY-MM-DD'
 )
 parser.add_argument(
+    '-i',
     '--ignore',
     nargs='*',
     help='track title(s) to ignore'
 )
 parser.add_argument(
+    '-a',
     '--album',
     required=True,
     help='album to be written into the track file'
 )
 parser.add_argument(
+    '-g',
     '--genre',
     required=True,
     help='genre to be written into the track file'
