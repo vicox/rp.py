@@ -218,7 +218,7 @@ else:
         else:
             new_tracks += 1
 
-        track_status = ('new', 'existing')[artist_and_title in target_list]
+        track_status = ('**new***', 'existing')[artist_and_title in target_list]
         track_dates = list(map(lambda x: x['date'], tracks))
         print(f'[{track_status}] {artist_and_title} ({', '.join(track_dates)})')
 
