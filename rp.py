@@ -114,8 +114,8 @@ ignored_titles = dict()
 source_count = len([name for name in os.listdir(source)])
 target_count = len([name for name in os.listdir(target)])
 
+with progressbar2.ProgressBar(max_value=source_count + target_count, prefix='Scanning: ') as bar:
 i = 0
-with progressbar2.ProgressBar(max_value=source_count + target_count) as bar:
     for file_name in sorted(os.listdir(source)):
         file_path = os.path.join(source, file_name)
         if os.path.isfile(file_path):
