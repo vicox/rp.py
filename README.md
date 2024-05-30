@@ -65,7 +65,7 @@ Fixed genre to be written into the track file.
 
 Ignore tracks after YYYY-MM-DD.
 
-### --max-date
+### --min-date
 
 Ignore tracks before YYYY-MM-DD.
 
