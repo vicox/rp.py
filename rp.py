@@ -76,6 +76,12 @@ group.add_argument(
     help='move tracks from source to target'
 )
 parser.add_argument(
+    '--overwrite',
+    choices=['always', 'never'],
+    required=True,
+    help='overwrite existing files'
+)
+parser.add_argument(
     '--max-date',
     type=valid_date,
     help='ignore tracks after YYYY-MM-DD'
@@ -191,7 +197,7 @@ for artist_and_title, tracks in source_list.items():
                 "new": 0
             }
         tracks_per_date[date]['total'] += 1
-        if track == tracks[-1]:
+        if track == tracks[(0, -1)[args.overwrite == 'always']]:
             tracks_per_date[date]['unique'] += 1
             if (artist_and_title in target_list):
                 tracks_per_date[date]['existing'] += 1
@@ -224,16 +230,17 @@ print(f'Existing tracks: {existing_tracks}')
 print(f'New tracks: {new_tracks}', flush=True)
 
 if args.copy:
-    with progressbar2.ProgressBar(max_value=len(source_list), prefix='Copying: ') as bar:
+    with progressbar2.ProgressBar(max_value=(new_tracks, unique_tracks)[args.overwrite == 'always'], prefix='Copying: ') as bar:
         i = 0
         for artist_and_title, tracks in source_list.items():
-            track = tracks[-1]
-            file_name = sanitize_filename(f'{artist_and_title}.ogg')
-            target_file_path = os.path.join(target, file_name)
-            shutil.copy2(track['file_path'], target_file_path)
-            set_meta(target_file_path, track['title'], track['artist'], args.album, args.genre)
-            bar.update(i)
-            i += 1
+            if (args.overwrite == 'always' or not artist_and_title in target_list):
+                track = tracks[(0, -1)[args.overwrite == 'always']]
+                file_name = sanitize_filename(f'{artist_and_title}.ogg')
+                target_file_path = os.path.join(target, file_name)
+                shutil.copy2(track['file_path'], target_file_path)
+                set_meta(target_file_path, track['title'], track['artist'], args.album, args.genre)
+                bar.update(i)
+                i += 1
 
 elif args.move:
     print('not implemented yet')
