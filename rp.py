@@ -162,7 +162,9 @@ with progressbar2.ProgressBar(max_value=source_count + target_count) as bar:
         bar.update(i)
         i += 1
 
-print('Ignored tracks:')
+print('====================')
+print('Ignored Tracks')
+print('====================')
 print(f'No title ({no_title})')
 print('\n'.join(list(map(lambda x: f'{x} ({ignored_titles[x]})', ignored_titles))))
 
@@ -178,6 +180,10 @@ if args.copy:
 elif args.move:
     print('not implemented yet')
 else:
+    print('\n====================')
+    print('Track Status')
+    print('====================')
+
     dates = set()
     tracks_per_date = dict()
     total_tracks = 0
@@ -216,7 +222,14 @@ else:
         track_dates = list(map(lambda x: x['date'], tracks))
         print(f'[{track_status}] {artist_and_title} ({', '.join(track_dates)})')
 
-    print(f'Tracks per date:\n{'\n'.join(list(map(lambda x: f'{x}: {f'{tracks_per_date[x]['total']} total, {tracks_per_date[x]['unique']} unique, {tracks_per_date[x]['existing']} existing, {tracks_per_date[x]['new']} new'}', sorted(dates))))}')
+    print('\n====================')
+    print('Track Summary By Date')
+    print('====================')
+    print('\n'.join(list(map(lambda x: f'{x}: {f'{tracks_per_date[x]['total']} total, {tracks_per_date[x]['unique']} unique, {tracks_per_date[x]['existing']} existing, {tracks_per_date[x]['new']} new'}', sorted(dates)))))
+    
+    print('\n====================')
+    print('Track Summary')
+    print('====================')
     print(f'Total tracks: {total_tracks}')
     print(f'Unique tracks: {unique_tracks}')
     print(f'Existing tracks: {existing_tracks}')
