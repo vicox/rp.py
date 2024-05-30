@@ -1,3 +1,7 @@
+<div align="center">
+ <img src="logo.svg" height="300">
+</div>
+
 # rp.py
 
 `rp.py` helps you build an offline music library from the web.
@@ -104,5 +108,8 @@ Ignore tracks before YYYY-MM-DD.
 
 ## Current limitations
 
-* Incoming tracks are required to have the artist and title stored in the meta tag *title* in the format `{artist} - {title}`
+* Incoming tracks are required to have the artist and title stored in the meta tag *title* in the format `{artist} - {title}`.
 * Files are always stored in the target directory with `.ogg`, independent of the source file extensions.
+
+---
+Logo designed by [Freepik](https://www.freepik.com) 
