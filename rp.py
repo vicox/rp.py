@@ -82,7 +82,7 @@ parser.add_argument(
     '--overwrite',
     choices=['always', 'never'],
     required=True,
-    help='overwrite existing files'
+    help='strategy to overwrite existing files'
 )
 parser.add_argument(
     '--max-date',
@@ -104,7 +104,7 @@ parser.add_argument(
     '-a',
     '--album',
     required=True,
-    help='album to be written into the track file'
+    help='album name to be written into the track file'
 )
 parser.add_argument(
     '-g',
