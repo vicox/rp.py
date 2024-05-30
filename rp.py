@@ -168,69 +168,72 @@ print('====================')
 print(f'No title ({no_title})')
 print('\n'.join(list(map(lambda x: f'{x} ({ignored_titles[x]})', ignored_titles))))
 
+print('\n====================')
+print('Track status')
+print('====================')
+
+dates = set()
+tracks_per_date = dict()
+total_tracks = 0
+unique_tracks = 0
+existing_tracks = 0
+new_tracks = 0
+
+for artist_and_title, tracks in source_list.items():
+    for track in tracks:
+        date = track['date']
+        dates.add(date)
+        if date not in tracks_per_date:
+            tracks_per_date[date] = {
+                "total": 0,
+                "unique": 0,
+                "existing": 0,
+                "new": 0
+            }
+        tracks_per_date[date]['total'] += 1
+        if track == tracks[-1]:
+            tracks_per_date[date]['unique'] += 1
+            if (artist_and_title in target_list):
+                tracks_per_date[date]['existing'] += 1
+            else:
+                tracks_per_date[date]['new'] += 1
+    
+    total_tracks += len(tracks)
+    unique_tracks += 1
+
+    if (artist_and_title in target_list):
+        existing_tracks += 1
+    else:
+        new_tracks += 1
+
+    track_status = ('**new***', 'existing')[artist_and_title in target_list]
+    track_dates = list(map(lambda x: x['date'], tracks))
+    print(f'[{track_status}] {artist_and_title} ({', '.join(track_dates)})')
+
+print('\n====================')
+print('Track summary by date')
+print('====================')
+print('\n'.join(list(map(lambda x: f'{x}: {f'{tracks_per_date[x]['total']} total, {tracks_per_date[x]['unique']} unique, {tracks_per_date[x]['existing']} existing, {tracks_per_date[x]['new']} new'}', sorted(dates)))))
+
+print('\n====================')
+print('Track summary')
+print('====================')
+print(f'Total tracks: {total_tracks}')
+print(f'Unique tracks: {unique_tracks}')
+print(f'Existing tracks: {existing_tracks}')
+print(f'New tracks: {new_tracks}', flush=True)
+
 if args.copy:
-    for artist_and_title, tracks in source_list.items():
-        track = tracks[-1]
-        file_name = sanitize_filename(f'{artist_and_title}.ogg')
-        target_file_path = os.path.join(target, file_name)
-        print(f'copying {file_name}')
-        shutil.copy2(track['file_path'], target_file_path)
-        set_meta(target_file_path, track['title'], track['artist'], args.album, args.genre)
+    with progressbar2.ProgressBar(max_value=len(source_list), prefix='Copying: ') as bar:
+        i = 0
+        for artist_and_title, tracks in source_list.items():
+            track = tracks[-1]
+            file_name = sanitize_filename(f'{artist_and_title}.ogg')
+            target_file_path = os.path.join(target, file_name)
+            shutil.copy2(track['file_path'], target_file_path)
+            set_meta(target_file_path, track['title'], track['artist'], args.album, args.genre)
+            bar.update(i)
+            i += 1
 
 elif args.move:
     print('not implemented yet')
-else:
-    print('\n====================')
-    print('Track status')
-    print('====================')
-
-    dates = set()
-    tracks_per_date = dict()
-    total_tracks = 0
-    unique_tracks = 0
-    existing_tracks = 0
-    new_tracks = 0
-
-    for artist_and_title, tracks in source_list.items():
-        for track in tracks:
-            date = track['date']
-            dates.add(date)
-            if date not in tracks_per_date:
-                tracks_per_date[date] = {
-                    "total": 0,
-                    "unique": 0,
-                    "existing": 0,
-                    "new": 0
-                }
-            tracks_per_date[date]['total'] += 1
-            if track == tracks[-1]:
-                tracks_per_date[date]['unique'] += 1
-                if (artist_and_title in target_list):
-                    tracks_per_date[date]['existing'] += 1
-                else:
-                    tracks_per_date[date]['new'] += 1
-        
-        total_tracks += len(tracks)
-        unique_tracks += 1
-
-        if (artist_and_title in target_list):
-            existing_tracks += 1
-        else:
-            new_tracks += 1
-
-        track_status = ('**new***', 'existing')[artist_and_title in target_list]
-        track_dates = list(map(lambda x: x['date'], tracks))
-        print(f'[{track_status}] {artist_and_title} ({', '.join(track_dates)})')
-
-    print('\n====================')
-    print('Track summary by date')
-    print('====================')
-    print('\n'.join(list(map(lambda x: f'{x}: {f'{tracks_per_date[x]['total']} total, {tracks_per_date[x]['unique']} unique, {tracks_per_date[x]['existing']} existing, {tracks_per_date[x]['new']} new'}', sorted(dates)))))
-    
-    print('\n====================')
-    print('Track summary')
-    print('====================')
-    print(f'Total tracks: {total_tracks}')
-    print(f'Unique tracks: {unique_tracks}')
-    print(f'Existing tracks: {existing_tracks}')
-    print(f'New tracks: {new_tracks}')
