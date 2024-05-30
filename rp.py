@@ -236,7 +236,7 @@ print(f'Existing tracks: {existing_tracks}')
 print(f'New tracks: {new_tracks}', flush=True)
 
 if args.copy or args.move:
-    with progressbar2.ProgressBar(max_value=(new_tracks, unique_tracks)[args.overwrite == 'always'], prefix='Copying: ') as bar:
+    with progressbar2.ProgressBar(max_value=(new_tracks, unique_tracks)[args.overwrite == 'always'], prefix=('Moving: ', 'Copying: ')[args.copy]) as bar:
         i = 0
         for artist_and_title, tracks in source_list.items():
             if (args.overwrite == 'always' or not artist_and_title in target_list):
