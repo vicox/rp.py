@@ -116,7 +116,7 @@ target_count = len([name for name in os.listdir(target)])
 
 i = 0
 with progressbar2.ProgressBar(max_value=source_count + target_count) as bar:
-    for file_name in os.listdir(source):
+    for file_name in sorted(os.listdir(source)):
         file_path = os.path.join(source, file_name)
         if os.path.isfile(file_path):
             mtime = os.path.getmtime(file_path)
@@ -145,7 +145,7 @@ with progressbar2.ProgressBar(max_value=source_count + target_count) as bar:
         bar.update(i)
         i += 1
 
-    for file_name in os.listdir(target):
+    for file_name in sorted(os.listdir(target)):
         file_path = os.path.join(target, file_name)
         if os.path.isfile(file_path):
             mtime = os.path.getmtime(file_path)
