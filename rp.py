@@ -245,7 +245,7 @@ if args.copy or args.move:
                 track = tracks[(0, -1)[args.overwrite == 'always']]
                 file_name = sanitize_filename(f'{artist_and_title}.ogg')
                 target_file_path = os.path.join(target, file_name)
-                temp_file_path = os.path.join(target, f'temp_{file_name}')
+                temp_file_path = os.path.join(target, f'{file_name}.temp')
                 try:
                     shutil.copy2(track['file_path'], temp_file_path)
                     write_tags(temp_file_path, track['title'], track['artist'], args.album, args.genre)
