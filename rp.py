@@ -235,6 +235,8 @@ print(f'Unique tracks: {unique_tracks}')
 print(f'Existing tracks: {existing_tracks}')
 print(f'New tracks: {new_tracks}', flush=True)
 
+errors = dict()
+
 if args.copy or args.move:
     with progressbar2.ProgressBar(max_value=(new_tracks, unique_tracks)[args.overwrite == 'always'], prefix=('Moving: ', 'Copying: ')[args.copy]) as bar:
         i = 0
@@ -243,10 +245,25 @@ if args.copy or args.move:
                 track = tracks[(0, -1)[args.overwrite == 'always']]
                 file_name = sanitize_filename(f'{artist_and_title}.ogg')
                 target_file_path = os.path.join(target, file_name)
-                if args.copy:
+                try:
                     shutil.copy2(track['file_path'], target_file_path)
-                else:
-                    shutil.move(track['file_path'], target_file_path)
-                write_tags(target_file_path, track['title'], track['artist'], args.album, args.genre)
+                    write_tags(target_file_path, track['title'], track['artist'], args.album, args.genre)
+                    if args.move:
+                        os.remove(track['file_path'])
+                except Exception as error:
+                    errors[artist_and_title] = error
+                    try:
+                        if os.path.isfile(target_file_path):
+                            os.remove(target_file_path)
+                    except:
+                        pass
+
                 bar.update(i)
                 i += 1
+
+if len(errors) > 0:
+    print('\n====================')
+    print('Errors - track not copied or moved!')
+    print('====================')
+    for artist_and_title, error in errors.items():
+        print(f'{artist_and_title} ({type(error).__name__}: {error})')
