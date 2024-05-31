@@ -41,7 +41,7 @@ def split_artist_and_title(artist_and_title):
         artist, title = artist_and_title.split(' - ', 1)
     return title, artist
 
-def get_meta(file_path):
+def read_tags(file_path):
     audio = mutagen.File(file_path)
     return {
         "title": audio['title'][0] if 'title' in audio else None,
@@ -50,7 +50,7 @@ def get_meta(file_path):
         "genre": audio['genre'][0] if 'genre' in audio else None,
     }
 
-def set_meta(file_path, title, artist, album, genre):
+def write_tags(file_path, title, artist, album, genre):
     mtime = os.path.getmtime(file_path)
     atime = os.path.getatime(file_path)
     audio = mutagen.File(file_path)
@@ -135,7 +135,7 @@ with progressbar2.ProgressBar(max_value=source_count + target_count, prefix='Sca
             date = time.strftime('%Y-%m-%d', time.localtime(mtime))
             if ((not args.min_date or date >= args.min_date)
                     and (not args.max_date or date <= args.max_date)):
-                artist_and_title = get_meta(file_path)['title']
+                artist_and_title = read_tags(file_path)['title']
                 title, artist = split_artist_and_title(artist_and_title)
                 if title and artist and (not args.ignore or artist_and_title not in args.ignore):
                     if artist_and_title not in source_list:
@@ -162,8 +162,8 @@ with progressbar2.ProgressBar(max_value=source_count + target_count, prefix='Sca
         if os.path.isfile(file_path):
             mtime = os.path.getmtime(file_path)
             date = time.strftime('%Y-%m-%d', time.localtime(mtime))
-            title = get_meta(file_path)['title']
-            artist = get_meta(file_path)['artist']
+            title = read_tags(file_path)['title']
+            artist = read_tags(file_path)['artist']
             target_list[f'{artist} - {title}'] = {
                 "file_path": file_path,
                 "mtime": mtime,
@@ -247,6 +247,6 @@ if args.copy or args.move:
                     shutil.copy2(track['file_path'], target_file_path)
                 else:
                     shutil.move(track['file_path'], target_file_path)
-                set_meta(target_file_path, track['title'], track['artist'], args.album, args.genre)
+                write_tags(target_file_path, track['title'], track['artist'], args.album, args.genre)
                 bar.update(i)
                 i += 1
