@@ -240,23 +240,22 @@ if args.copy or args.move:
                 track = tracks[(0, -1)[args.overwrite == 'always']]
                 file_name = sanitize_filename(f'{artist_and_title}.ogg')
                 target_file_path = os.path.join(target, file_name)
-                temp_file_path = os.path.join(target, f'{file_name}.temp')
+                source_file_path = (track['file_path'], os.path.join(source, f'Copy of {file_name}'))[args.copy]
                 try:
-                    shutil.copy2(track['file_path'], temp_file_path)
-                    write_tags(temp_file_path, {
+                    if args.copy:
+                        shutil.copy2(track['file_path'], source_file_path)
+                    write_tags(source_file_path, {
                         'title': track['title'],
                         'artist': track['artist'],
                         'album': args.album,
                         'genre': args.genre
                     })
-                    if args.move:
-                        os.remove(track['file_path'])
-                    os.replace(temp_file_path, target_file_path)
+                    shutil.move(source_file_path, target_file_path)
                 except Exception as error:
                     errors[artist_and_title] = error
-                    if os.path.isfile(temp_file_path):
-                        os.remove(temp_file_path)
-
+                    if args.copy:
+                        if os.path.isfile(source_file_path):
+                            os.remove(source_file_path)   
                 bar.update(i)
                 i += 1
 
