@@ -20,7 +20,7 @@
 import os
 import time
 import datetime
-import bisect 
+import bisect
 import argparse
 import shutil
 import mutagen
@@ -204,7 +204,7 @@ for artist_and_title, tracks in source_list.items():
                 tracks_per_date[date]['existing'] += 1
             else:
                 tracks_per_date[date]['new'] += 1
-    
+
     total_tracks += len(tracks)
     unique_tracks += 1
 
@@ -255,7 +255,7 @@ if args.copy or args.move:
                     errors[artist_and_title] = error
                     if args.copy:
                         if os.path.isfile(source_file_path):
-                            os.remove(source_file_path)   
+                            os.remove(source_file_path)
                 bar.update(i)
                 i += 1
 
