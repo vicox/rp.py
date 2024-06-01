@@ -43,23 +43,15 @@ def split_artist_and_title(artist_and_title):
 
 def read_tags(file_path):
     audio = mutagen.File(file_path)
-    return {
-        "title": audio['title'][0] if 'title' in audio else None,
-        "artist": audio['artist'][0] if 'artist' in audio else None,
-        "album": audio['album'][0] if 'album' in audio else None,
-        "genre": audio['genre'][0] if 'genre' in audio else None,
-    }
+    return dict(map(lambda kv: (kv[0], kv[1][0]), audio.tags.items()))
 
-def write_tags(file_path, title, artist, album, genre):
+def write_tags(file_path, tags):
     mtime = os.path.getmtime(file_path)
     atime = os.path.getatime(file_path)
     audio = mutagen.File(file_path)
-    audio['title'] = title
-    audio['artist'] = artist
-    if album:
-        audio['album'] = album
-    if genre:
-        audio['genre'] = genre
+    for key, value in tags.items():
+        if value:
+            audio[key] = value
     audio.save()
     os.utime(file_path, (atime, mtime))
 
@@ -135,7 +127,8 @@ with progressbar2.ProgressBar(max_value=source_count + target_count, prefix='Sca
             date = time.strftime('%Y-%m-%d', time.localtime(mtime))
             if ((not args.min_date or date >= args.min_date)
                     and (not args.max_date or date <= args.max_date)):
-                artist_and_title = read_tags(file_path)['title']
+                tags = read_tags(file_path)
+                artist_and_title = tags.get('title')
                 title, artist = split_artist_and_title(artist_and_title)
                 if title and artist and (not args.ignore or artist_and_title not in args.ignore):
                     if artist_and_title not in source_list:
@@ -162,9 +155,11 @@ with progressbar2.ProgressBar(max_value=source_count + target_count, prefix='Sca
         if os.path.isfile(file_path):
             mtime = os.path.getmtime(file_path)
             date = time.strftime('%Y-%m-%d', time.localtime(mtime))
-            title = read_tags(file_path)['title']
-            artist = read_tags(file_path)['artist']
-            target_list[f'{artist} - {title}'] = {
+            tags = read_tags(file_path)
+            title = tags.get('title')
+            artist = tags.get('artist')
+            if artist and title:
+                target_list[f'{artist} - {title}'] = {
                 "file_path": file_path,
                 "mtime": mtime,
                 "date": date,
@@ -248,7 +243,12 @@ if args.copy or args.move:
                 temp_file_path = os.path.join(target, f'{file_name}.temp')
                 try:
                     shutil.copy2(track['file_path'], temp_file_path)
-                    write_tags(temp_file_path, track['title'], track['artist'], args.album, args.genre)
+                    write_tags(temp_file_path, {
+                        'title': track['title'],
+                        'artist': track['artist'],
+                        'album': args.album,
+                        'genre': args.genre
+                    })
                     if args.move:
                         os.remove(track['file_path'])
                     os.replace(temp_file_path, target_file_path)
