@@ -200,7 +200,7 @@ for artist_and_title, tracks in source_list.items():
         tracks_per_date[date]['total'] += 1
         if track == tracks[(0, -1)[args.overwrite == 'always']]:
             tracks_per_date[date]['unique'] += 1
-            if (artist_and_title in target_list):
+            if artist_and_title in target_list:
                 tracks_per_date[date]['existing'] += 1
             else:
                 tracks_per_date[date]['new'] += 1
@@ -208,7 +208,7 @@ for artist_and_title, tracks in source_list.items():
     total_tracks += len(tracks)
     unique_tracks += 1
 
-    if (artist_and_title in target_list):
+    if artist_and_title in target_list:
         existing_tracks += 1
     else:
         new_tracks += 1
