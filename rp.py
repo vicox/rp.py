@@ -56,7 +56,7 @@ def write_tags(file_path, tags):
     audio.save()
     os.utime(file_path, (atime, mtime))
 
-def main():
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('source')
     parser.add_argument('target')
@@ -106,11 +106,9 @@ def main():
         '--genre',
         help='genre to be written into the track file'
     )
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    source = args.source
-    target = args.target
-
+def scan_dirs(source, target, min_date, max_date, ignore):
     source_list = {}
     target_list = {}
 
@@ -127,13 +125,12 @@ def main():
             if os.path.isfile(file_path):
                 mtime = os.path.getmtime(file_path)
                 date = time.strftime('%Y-%m-%d', time.localtime(mtime))
-                if ((not args.min_date or date >= args.min_date)
-                        and (not args.max_date or date <= args.max_date)):
+                if ((not min_date or date >= min_date) and (not max_date or date <= max_date)):
                     tags = read_tags(file_path)
                     artist_and_title = tags.get('title')
                     title, artist = split_artist_and_title(artist_and_title)
                     if title and artist and (
-                        not args.ignore or artist_and_title not in args.ignore
+                        not ignore or artist_and_title not in ignore
                     ):
                         if artist_and_title not in source_list:
                             source_list[artist_and_title] = []
@@ -179,16 +176,19 @@ def main():
     print(f'No title ({no_title})')
     print('\n'.join(list(map(lambda x: f'{x} ({ignored_titles[x]})', ignored_titles))))
 
-    print('\n====================')
-    print('Track status')
-    print('====================')
+    return source_list, target_list
 
+def print_report(source_list, target_list, overwrite):
     dates = set()
     tracks_per_date = {}
     total_tracks = 0
     unique_tracks = 0
     existing_tracks = 0
     new_tracks = 0
+
+    print('\n====================')
+    print('Track status')
+    print('====================')
 
     for artist_and_title, tracks in source_list.items():
         for track in tracks:
@@ -202,7 +202,7 @@ def main():
                     "new": 0
                 }
             tracks_per_date[date]['total'] += 1
-            if track == tracks[(0, -1)[args.overwrite == 'always']]:
+            if track == tracks[(0, -1)[overwrite == 'always']]:
                 tracks_per_date[date]['unique'] += 1
                 if artist_and_title in target_list:
                     tracks_per_date[date]['existing'] += 1
@@ -239,40 +239,53 @@ def main():
     print(f'Existing tracks: {existing_tracks}')
     print(f'New tracks: {new_tracks}', flush=True)
 
+    return existing_tracks, new_tracks
+
+def copy_or_move(
+    source,
+    target,
+    source_list,
+    target_list,
+    existing_tracks,
+    new_tracks,
+    overwrite,
+    copy,
+    album,
+    genre
+):
     errors = {}
 
-    if args.copy or args.move:
-        with progressbar2.ProgressBar(
-            max_value=(new_tracks, unique_tracks)[args.overwrite == 'always'],
-            prefix=('Moving: ', 'Copying: ')[args.copy]
-        ) as bar:
-            i = 0
-            for artist_and_title, tracks in source_list.items():
-                if (args.overwrite == 'always' or not artist_and_title in target_list):
-                    track = tracks[(0, -1)[args.overwrite == 'always']]
-                    file_name = sanitize_filename(f'{artist_and_title}.ogg')
-                    target_file_path = os.path.join(target, file_name)
-                    source_file_path = (
-                        track['file_path'],
-                        os.path.join(source, f'Copy of {file_name}')
-                    )[args.copy]
-                    try:
-                        if args.copy:
-                            shutil.copy2(track['file_path'], source_file_path)
-                        write_tags(source_file_path, {
-                            'title': track['title'],
-                            'artist': track['artist'],
-                            'album': args.album,
-                            'genre': args.genre
-                        })
-                        shutil.move(source_file_path, target_file_path)
-                    except Exception as error:
-                        errors[artist_and_title] = error
-                        if args.copy:
-                            if os.path.isfile(source_file_path):
-                                os.remove(source_file_path)
-                    bar.update(i)
-                    i += 1
+    with progressbar2.ProgressBar(
+        max_value=(new_tracks, existing_tracks + new_tracks)[overwrite == 'always'],
+        prefix=('Moving: ', 'Copying: ')[copy]
+    ) as bar:
+        i = 0
+        for artist_and_title, tracks in source_list.items():
+            if (overwrite == 'always' or not artist_and_title in target_list):
+                track = tracks[(0, -1)[overwrite == 'always']]
+                file_name = sanitize_filename(f'{artist_and_title}.ogg')
+                target_file_path = os.path.join(target, file_name)
+                source_file_path = (
+                    track['file_path'],
+                    os.path.join(source, f'Copy of {file_name}')
+                )[copy]
+                try:
+                    if copy:
+                        shutil.copy2(track['file_path'], source_file_path)
+                    write_tags(source_file_path, {
+                        'title': track['title'],
+                        'artist': track['artist'],
+                        'album': album,
+                        'genre': genre
+                    })
+                    shutil.move(source_file_path, target_file_path)
+                except Exception as error:
+                    errors[artist_and_title] = error
+                    if copy:
+                        if os.path.isfile(source_file_path):
+                            os.remove(source_file_path)
+                bar.update(i)
+                i += 1
 
     if len(errors) > 0:
         print('\n====================')
@@ -280,6 +293,37 @@ def main():
         print('====================')
         for artist_and_title, error in errors.items():
             print(f'{artist_and_title} ({type(error).__name__}: {error})')
+
+def main():
+    args = parse_args()
+
+    source_list, target_list = scan_dirs(
+        args.source,
+        args.target,
+        args.min_date,
+        args.max_date,
+        args.ignore
+    )
+
+    existing_tracks, new_tracks = print_report(
+        source_list,
+        target_list,
+        args.overwrite
+    )
+
+    if args.copy or args.move:
+        copy_or_move(
+            args.source,
+            args.target,
+            source_list,
+            target_list,
+            existing_tracks,
+            new_tracks,
+            args.overwrite,
+            args.copy,
+            args.album,
+            args.genre
+        )
 
 if __name__ == '__main__':
     sys.exit(main())
