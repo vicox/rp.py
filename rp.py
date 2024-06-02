@@ -178,13 +178,15 @@ def scan(source, target, min_date, max_date, ignore):
 
     return source_list, target_list
 
-def print_report(source_list, target_list, overwrite):
+def summarize(source_list, target_list, overwrite):
     dates = set()
-    tracks_per_date = {}
-    total_tracks = 0
-    unique_tracks = 0
-    existing_tracks = 0
-    new_tracks = 0
+    summary = {
+        "by_date": {},
+        "total_tracks": 0,
+        "unique_tracks": 0,
+        "existing_tracks": 0,
+        "new_tracks": 0
+    }
 
     print('\n====================')
     print('Track status')
@@ -194,28 +196,28 @@ def print_report(source_list, target_list, overwrite):
         for track in tracks:
             date = track['date']
             dates.add(date)
-            if date not in tracks_per_date:
-                tracks_per_date[date] = {
+            if date not in summary['by_date']:
+                summary['by_date'][date] = {
                     "total": 0,
                     "unique": 0,
                     "existing": 0,
                     "new": 0
                 }
-            tracks_per_date[date]['total'] += 1
+            summary['by_date'][date]['total'] += 1
             if track == tracks[(0, -1)[overwrite == 'always']]:
-                tracks_per_date[date]['unique'] += 1
+                summary['by_date'][date]['unique'] += 1
                 if artist_and_title in target_list:
-                    tracks_per_date[date]['existing'] += 1
+                    summary['by_date'][date]['existing'] += 1
                 else:
-                    tracks_per_date[date]['new'] += 1
+                    summary['by_date'][date]['new'] += 1
 
-        total_tracks += len(tracks)
-        unique_tracks += 1
+        summary['total_tracks'] += len(tracks)
+        summary['unique_tracks'] += 1
 
         if artist_and_title in target_list:
-            existing_tracks += 1
+            summary['existing_tracks'] += 1
         else:
-            new_tracks += 1
+            summary['new_tracks'] += 1
 
         track_status = ('**new***', 'existing')[artist_and_title in target_list]
         track_dates = list(map(lambda x: x['date'], tracks))
@@ -225,29 +227,28 @@ def print_report(source_list, target_list, overwrite):
     print('Track summary by date')
     print('====================')
     print('\n'.join(list(map(lambda x: f'{x}: {(
-        f'{tracks_per_date[x]['total']} total'
-        f', {tracks_per_date[x]['unique']} unique'
-        f', {tracks_per_date[x]['existing']} existing'
-        f', {tracks_per_date[x]['new']} new'
+        f'{summary['by_date'][x]['total']} total'
+        f', {summary['by_date'][x]['unique']} unique'
+        f', {summary['by_date'][x]['existing']} existing'
+        f', {summary['by_date'][x]['new']} new'
     )}', sorted(dates)))))
 
     print('\n====================')
     print('Track summary')
     print('====================')
-    print(f'Total tracks: {total_tracks}')
-    print(f'Unique tracks: {unique_tracks}')
-    print(f'Existing tracks: {existing_tracks}')
-    print(f'New tracks: {new_tracks}', flush=True)
+    print(f'Total tracks: {summary['total_tracks']}')
+    print(f'Unique tracks: {summary['unique_tracks']}')
+    print(f'Existing tracks: {summary['existing_tracks']}')
+    print(f'New tracks: {summary["new_tracks"]}', flush=True)
 
-    return existing_tracks, new_tracks
+    return summary
 
 def copy_or_move(
     source,
     target,
     source_list,
     target_list,
-    existing_tracks,
-    new_tracks,
+    summary,
     overwrite,
     copy,
     album,
@@ -256,7 +257,7 @@ def copy_or_move(
     errors = {}
 
     with progressbar2.ProgressBar(
-        max_value=(new_tracks, existing_tracks + new_tracks)[overwrite == 'always'],
+        max_value=(summary['new_tracks'], summary['unique_tracks'])[overwrite == 'always'],
         prefix=('Moving: ', 'Copying: ')[copy]
     ) as bar:
         i = 0
@@ -305,7 +306,7 @@ def main():
         args.ignore
     )
 
-    existing_tracks, new_tracks = print_report(
+    summary = summarize(
         source_list,
         target_list,
         args.overwrite
@@ -317,8 +318,7 @@ def main():
             args.target,
             source_list,
             target_list,
-            existing_tracks,
-            new_tracks,
+            summary,
             args.overwrite,
             args.copy,
             args.album,
