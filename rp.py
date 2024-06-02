@@ -132,7 +132,9 @@ def main():
                     tags = read_tags(file_path)
                     artist_and_title = tags.get('title')
                     title, artist = split_artist_and_title(artist_and_title)
-                    if title and artist and (not args.ignore or artist_and_title not in args.ignore):
+                    if title and artist and (
+                        not args.ignore or artist_and_title not in args.ignore
+                    ):
                         if artist_and_title not in source_list:
                             source_list[artist_and_title] = []
                         bisect.insort(source_list[artist_and_title], {
