@@ -220,7 +220,12 @@ for artist_and_title, tracks in source_list.items():
 print('\n====================')
 print('Track summary by date')
 print('====================')
-print('\n'.join(list(map(lambda x: f'{x}: {f'{tracks_per_date[x]['total']} total, {tracks_per_date[x]['unique']} unique, {tracks_per_date[x]['existing']} existing, {tracks_per_date[x]['new']} new'}', sorted(dates)))))
+print('\n'.join(list(map(lambda x: f'{x}: {(
+    f'{tracks_per_date[x]['total']} total'
+    f', {tracks_per_date[x]['unique']} unique'
+    f', {tracks_per_date[x]['existing']} existing'
+    f', {tracks_per_date[x]['new']} new'
+)}', sorted(dates)))))
 
 print('\n====================')
 print('Track summary')
@@ -233,14 +238,20 @@ print(f'New tracks: {new_tracks}', flush=True)
 errors = {}
 
 if args.copy or args.move:
-    with progressbar2.ProgressBar(max_value=(new_tracks, unique_tracks)[args.overwrite == 'always'], prefix=('Moving: ', 'Copying: ')[args.copy]) as bar:
+    with progressbar2.ProgressBar(
+        max_value=(new_tracks, unique_tracks)[args.overwrite == 'always'],
+        prefix=('Moving: ', 'Copying: ')[args.copy]
+    ) as bar:
         i = 0
         for artist_and_title, tracks in source_list.items():
             if (args.overwrite == 'always' or not artist_and_title in target_list):
                 track = tracks[(0, -1)[args.overwrite == 'always']]
                 file_name = sanitize_filename(f'{artist_and_title}.ogg')
                 target_file_path = os.path.join(target, file_name)
-                source_file_path = (track['file_path'], os.path.join(source, f'Copy of {file_name}'))[args.copy]
+                source_file_path = (
+                    track['file_path'],
+                    os.path.join(source, f'Copy of {file_name}')
+                )[args.copy]
                 try:
                     if args.copy:
                         shutil.copy2(track['file_path'], source_file_path)
