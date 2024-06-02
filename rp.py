@@ -109,11 +109,11 @@ args = parser.parse_args()
 source = args.source
 target = args.target
 
-source_list = dict()
-target_list = dict()
+source_list = {}
+target_list = {}
 
 no_title = 0
-ignored_titles = dict()
+ignored_titles = {}
 
 source_count = len([name for name in os.listdir(source)])
 target_count = len([name for name in os.listdir(target)])
@@ -180,7 +180,7 @@ print('Track status')
 print('====================')
 
 dates = set()
-tracks_per_date = dict()
+tracks_per_date = {}
 total_tracks = 0
 unique_tracks = 0
 existing_tracks = 0
@@ -230,7 +230,7 @@ print(f'Unique tracks: {unique_tracks}')
 print(f'Existing tracks: {existing_tracks}')
 print(f'New tracks: {new_tracks}', flush=True)
 
-errors = dict()
+errors = {}
 
 if args.copy or args.move:
     with progressbar2.ProgressBar(max_value=(new_tracks, unique_tracks)[args.overwrite == 'always'], prefix=('Moving: ', 'Copying: ')[args.copy]) as bar:
