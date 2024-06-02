@@ -132,7 +132,7 @@ with progressbar2.ProgressBar(max_value=source_count + target_count, prefix='Sca
                 title, artist = split_artist_and_title(artist_and_title)
                 if title and artist and (not args.ignore or artist_and_title not in args.ignore):
                     if artist_and_title not in source_list:
-                        source_list[artist_and_title] = list()
+                        source_list[artist_and_title] = []
                     bisect.insort(source_list[artist_and_title], {
                         "file_path": file_path,
                         "mtime": mtime,
