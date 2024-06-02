@@ -109,8 +109,8 @@ def parse_args():
     return parser.parse_args()
 
 def scan(source, target, min_date, max_date, ignore):
-    source_list = {}
-    target_list = {}
+    source_tracks = {}
+    target_tracks = {}
 
     no_title = 0
     ignored_titles = {}
@@ -132,9 +132,9 @@ def scan(source, target, min_date, max_date, ignore):
                     if title and artist and (
                         not ignore or artist_and_title not in ignore
                     ):
-                        if artist_and_title not in source_list:
-                            source_list[artist_and_title] = []
-                        bisect.insort(source_list[artist_and_title], {
+                        if artist_and_title not in source_tracks:
+                            source_tracks[artist_and_title] = []
+                        bisect.insort(source_tracks[artist_and_title], {
                             "file_path": file_path,
                             "mtime": mtime,
                             "date": date,
@@ -160,7 +160,7 @@ def scan(source, target, min_date, max_date, ignore):
                 title = tags.get('title')
                 artist = tags.get('artist')
                 if artist and title:
-                    target_list[f'{artist} - {title}'] = {
+                    target_tracks[f'{artist} - {title}'] = {
                     "file_path": file_path,
                     "mtime": mtime,
                     "date": date,
@@ -176,9 +176,9 @@ def scan(source, target, min_date, max_date, ignore):
     print(f'No title ({no_title})')
     print('\n'.join(list(map(lambda x: f'{x} ({ignored_titles[x]})', ignored_titles))))
 
-    return source_list, target_list
+    return source_tracks, target_tracks
 
-def summarize(source_list, target_list, overwrite):
+def summarize(source_tracks, target_tracks, overwrite):
     dates = set()
     summary = {
         "by_date": {},
@@ -192,7 +192,7 @@ def summarize(source_list, target_list, overwrite):
     print('Track status')
     print('====================')
 
-    for artist_and_title, tracks in source_list.items():
+    for artist_and_title, tracks in source_tracks.items():
         for track in tracks:
             date = track['date']
             dates.add(date)
@@ -206,7 +206,7 @@ def summarize(source_list, target_list, overwrite):
             summary['by_date'][date]['total'] += 1
             if track == tracks[(0, -1)[overwrite == 'always']]:
                 summary['by_date'][date]['unique'] += 1
-                if artist_and_title in target_list:
+                if artist_and_title in target_tracks:
                     summary['by_date'][date]['existing'] += 1
                 else:
                     summary['by_date'][date]['new'] += 1
@@ -214,12 +214,12 @@ def summarize(source_list, target_list, overwrite):
         summary['total_tracks'] += len(tracks)
         summary['unique_tracks'] += 1
 
-        if artist_and_title in target_list:
+        if artist_and_title in target_tracks:
             summary['existing_tracks'] += 1
         else:
             summary['new_tracks'] += 1
 
-        track_status = ('**new***', 'existing')[artist_and_title in target_list]
+        track_status = ('**new***', 'existing')[artist_and_title in target_tracks]
         track_dates = list(map(lambda x: x['date'], tracks))
         print(f'[{track_status}] {artist_and_title} ({', '.join(track_dates)})')
 
@@ -246,8 +246,8 @@ def summarize(source_list, target_list, overwrite):
 def copy_or_move(
     source,
     target,
-    source_list,
-    target_list,
+    source_tracks,
+    target_tracks,
     summary,
     overwrite,
     copy,
@@ -261,8 +261,8 @@ def copy_or_move(
         prefix=('Moving: ', 'Copying: ')[copy]
     ) as bar:
         i = 0
-        for artist_and_title, tracks in source_list.items():
-            if (overwrite == 'always' or not artist_and_title in target_list):
+        for artist_and_title, tracks in source_tracks.items():
+            if (overwrite == 'always' or not artist_and_title in target_tracks):
                 track = tracks[(0, -1)[overwrite == 'always']]
                 file_name = sanitize_filename(f'{artist_and_title}.ogg')
                 target_file_path = os.path.join(target, file_name)
@@ -298,7 +298,7 @@ def copy_or_move(
 def main():
     args = parse_args()
 
-    source_list, target_list = scan(
+    source_tracks, target_tracks = scan(
         args.source,
         args.target,
         args.min_date,
@@ -307,8 +307,8 @@ def main():
     )
 
     summary = summarize(
-        source_list,
-        target_list,
+        source_tracks,
+        target_tracks,
         args.overwrite
     )
 
@@ -316,8 +316,8 @@ def main():
         copy_or_move(
             args.source,
             args.target,
-            source_list,
-            target_list,
+            source_tracks,
+            target_tracks,
             summary,
             args.overwrite,
             args.copy,
