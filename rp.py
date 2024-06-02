@@ -108,7 +108,7 @@ def parse_args():
     )
     return parser.parse_args()
 
-def scan_dirs(source, target, min_date, max_date, ignore):
+def scan(source, target, min_date, max_date, ignore):
     source_list = {}
     target_list = {}
 
@@ -297,7 +297,7 @@ def copy_or_move(
 def main():
     args = parse_args()
 
-    source_list, target_list = scan_dirs(
+    source_list, target_list = scan(
         args.source,
         args.target,
         args.min_date,
