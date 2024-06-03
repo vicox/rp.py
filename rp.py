@@ -207,24 +207,6 @@ def summarize(source_tracks, target_tracks, overwrite):
         else:
             summary['new_tracks'] += 1
 
-    print('\n====================')
-    print('Track summary by date')
-    print('====================')
-    print('\n'.join(list(map(lambda x: f'{x}: {(
-        f'{summary['by_date'][x]['total']} total'
-        f', {summary['by_date'][x]['unique']} unique'
-        f', {summary['by_date'][x]['existing']} existing'
-        f', {summary['by_date'][x]['new']} new'
-    )}', sorted(summary['by_date'].keys())))))
-
-    print('\n====================')
-    print('Track summary')
-    print('====================')
-    print(f'Total tracks: {summary['total_tracks']}')
-    print(f'Unique tracks: {summary['unique_tracks']}')
-    print(f'Existing tracks: {summary['existing_tracks']}')
-    print(f'New tracks: {summary["new_tracks"]}', flush=True)
-
     return summary
 
 def copy_or_move(
@@ -295,6 +277,25 @@ def print_track_status(source_tracks, target_tracks):
         f'({', '.join(list(map(lambda x: x['date'], kv[1])))})'
     ), source_tracks.items()))))
 
+def print_summary(summary):
+    print('\n====================')
+    print('Track summary by date')
+    print('====================')
+    print('\n'.join(list(map(lambda x: f'{x}: {(
+        f'{summary['by_date'][x]['total']} total'
+        f', {summary['by_date'][x]['unique']} unique'
+        f', {summary['by_date'][x]['existing']} existing'
+        f', {summary['by_date'][x]['new']} new'
+    )}', sorted(summary['by_date'].keys())))))
+
+    print('\n====================')
+    print('Track summary')
+    print('====================')
+    print(f'Total tracks: {summary['total_tracks']}')
+    print(f'Unique tracks: {summary['unique_tracks']}')
+    print(f'Existing tracks: {summary['existing_tracks']}')
+    print(f'New tracks: {summary["new_tracks"]}', flush=True)
+
 def main():
     args = parse_args()
 
@@ -314,6 +315,7 @@ def main():
 
     print_ignored_tracks(ignored_tracks)
     print_track_status(source_tracks, target_tracks)
+    print_summary(summary)
 
     if args.copy or args.move:
         copy_or_move(
