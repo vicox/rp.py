@@ -111,9 +111,9 @@ def parse_args():
 def scan(source, target, min_date, max_date, ignore):
     source_tracks = {}
     target_tracks = {}
-
-    no_title = 0
-    ignored_titles = {}
+    ignored_tracks = {
+        "__no_title__": 0
+    }
 
     with progressbar2.ProgressBar(
         max_value=len(os.listdir(source)) + len(os.listdir(target)),
@@ -143,11 +143,11 @@ def scan(source, target, min_date, max_date, ignore):
                         }, key=lambda x: x["mtime"])
                     else:
                         if not title or not artist:
-                            no_title += 1
-                        elif artist_and_title not in ignored_titles:
-                            ignored_titles[artist_and_title] = 1
+                            ignored_tracks['__no_title__'] += 1
+                        elif artist_and_title not in ignored_tracks:
+                            ignored_tracks[artist_and_title] = 1
                         else:
-                            ignored_titles[artist_and_title] += 1
+                            ignored_tracks[artist_and_title] += 1
             bar.update(i)
             i += 1
 
@@ -170,13 +170,7 @@ def scan(source, target, min_date, max_date, ignore):
             bar.update(i)
             i += 1
 
-    print('====================')
-    print('Ignored tracks')
-    print('====================')
-    print(f'No title ({no_title})')
-    print('\n'.join(list(map(lambda x: f'{x} ({ignored_titles[x]})', ignored_titles))))
-
-    return source_tracks, target_tracks
+    return source_tracks, target_tracks, ignored_tracks
 
 def summarize(source_tracks, target_tracks, overwrite):
     summary = {
@@ -293,10 +287,16 @@ def copy_or_move(
         for artist_and_title, error in errors.items():
             print(f'{artist_and_title} ({type(error).__name__}: {error})')
 
+def print_ignored_tracks(ignored_tracks):
+    print('====================')
+    print('Ignored tracks')
+    print('====================')
+    print('\n'.join(list(map(lambda x: f'{x if not x == '__no_title__' else "No title"} ({ignored_tracks[x]})', ignored_tracks))))
+
 def main():
     args = parse_args()
 
-    source_tracks, target_tracks = scan(
+    source_tracks, target_tracks, ignored_tracks = scan(
         args.source,
         args.target,
         args.min_date,
@@ -309,6 +309,8 @@ def main():
         target_tracks,
         args.overwrite
     )
+
+    print_ignored_tracks(ignored_tracks)
 
     if args.copy or args.move:
         copy_or_move(
