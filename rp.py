@@ -181,10 +181,6 @@ def summarize(source_tracks, target_tracks, overwrite):
         "new_tracks": 0
     }
 
-    print('\n====================')
-    print('Track status')
-    print('====================')
-
     for artist_and_title, tracks in source_tracks.items():
         for track in tracks:
             date = track['date']
@@ -210,10 +206,6 @@ def summarize(source_tracks, target_tracks, overwrite):
             summary['existing_tracks'] += 1
         else:
             summary['new_tracks'] += 1
-
-        track_status = ('**new***', 'existing')[artist_and_title in target_tracks]
-        track_dates = list(map(lambda x: x['date'], tracks))
-        print(f'[{track_status}] {artist_and_title} ({', '.join(track_dates)})')
 
     print('\n====================')
     print('Track summary by date')
@@ -293,6 +285,16 @@ def print_ignored_tracks(ignored_tracks):
     print('====================')
     print('\n'.join(list(map(lambda x: f'{x if not x == '__no_title__' else "No title"} ({ignored_tracks[x]})', ignored_tracks))))
 
+def print_track_status(source_tracks, target_tracks):
+    print('\n====================')
+    print('Track status')
+    print('====================')
+    print('\n'.join(list(map(lambda kv: (
+        f'[{('**new***', 'existing')[kv[0] in target_tracks]}]'
+        f' {kv[0]} '
+        f'({', '.join(list(map(lambda x: x['date'], kv[1])))})'
+    ), source_tracks.items()))))
+
 def main():
     args = parse_args()
 
@@ -311,6 +313,7 @@ def main():
     )
 
     print_ignored_tracks(ignored_tracks)
+    print_track_status(source_tracks, target_tracks)
 
     if args.copy or args.move:
         copy_or_move(
