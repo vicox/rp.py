@@ -179,7 +179,6 @@ def scan(source, target, min_date, max_date, ignore):
     return source_tracks, target_tracks
 
 def summarize(source_tracks, target_tracks, overwrite):
-    dates = set()
     summary = {
         "by_date": {},
         "total_tracks": 0,
@@ -195,7 +194,6 @@ def summarize(source_tracks, target_tracks, overwrite):
     for artist_and_title, tracks in source_tracks.items():
         for track in tracks:
             date = track['date']
-            dates.add(date)
             if date not in summary['by_date']:
                 summary['by_date'][date] = {
                     "total": 0,
@@ -231,7 +229,7 @@ def summarize(source_tracks, target_tracks, overwrite):
         f', {summary['by_date'][x]['unique']} unique'
         f', {summary['by_date'][x]['existing']} existing'
         f', {summary['by_date'][x]['new']} new'
-    )}', sorted(dates)))))
+    )}', sorted(summary['by_date'].keys())))))
 
     print('\n====================')
     print('Track summary')
