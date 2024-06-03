@@ -260,7 +260,9 @@ def print_ignored_tracks(ignored_tracks):
     print('====================')
     print('Ignored tracks')
     print('====================')
-    print('\n'.join(list(map(lambda x: f'{x if not x == '__no_title__' else "No title"} ({ignored_tracks[x]})', ignored_tracks))))
+    print('\n'.join(list(map(lambda kv: (
+        f'{kv[0] if not kv[0] == '__no_title__' else "No title"} ({kv[1]})'
+    ), ignored_tracks.items()))))
 
 def print_track_status(source_tracks, target_tracks):
     print('\n====================')
