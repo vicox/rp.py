@@ -254,12 +254,7 @@ def copy_or_move(
                 bar.update(i)
                 i += 1
 
-    if len(errors) > 0:
-        print('\n====================')
-        print('Errors - track not copied or moved!')
-        print('====================')
-        for artist_and_title, error in errors.items():
-            print(f'{artist_and_title} ({type(error).__name__}: {error})')
+    return errors
 
 def print_ignored_tracks(ignored_tracks):
     print('====================')
@@ -296,6 +291,14 @@ def print_summary(summary):
     print(f'Existing tracks: {summary['existing_tracks']}')
     print(f'New tracks: {summary["new_tracks"]}', flush=True)
 
+def print_errors(errors):
+    print('\n====================')
+    print('Errors - track not copied or moved!')
+    print('====================')
+    print('\n'.join(list(map(lambda kv: (
+        f'{kv[0]} ({type(kv[1]).__name__}: {kv[1]})'
+    ), errors.items()))))
+
 def main():
     args = parse_args()
 
@@ -318,7 +321,7 @@ def main():
     print_summary(summary)
 
     if args.copy or args.move:
-        copy_or_move(
+        errors = copy_or_move(
             args.source,
             args.target,
             source_tracks,
@@ -329,6 +332,8 @@ def main():
             args.album,
             args.genre
         )
+        if len(errors) > 0:
+            print_errors(errors)
 
 if __name__ == '__main__':
     sys.exit(main())
