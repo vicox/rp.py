@@ -35,12 +35,14 @@ def valid_date(date):
     except ValueError:
         raise argparse.ArgumentTypeError(f"not a valid date: {date}")
 
+def unsnake(source_title):
+    return source_title.replace('_', ' ')
+
 def extract_artist_and_title(source_title):
-    artist = None
-    title = None
-    if ' - ' in source_title:
-        artist, title = source_title.split(' - ', 1)
-    return artist, title
+    return (
+        [None, None],
+        [x.strip() for x in source_title.split(' - ', 1)]
+    )[' - ' in source_title] 
 
 def read_tags(file_path):
     audio = mutagen.File(file_path)
@@ -128,7 +130,7 @@ def scan(source, target, min_date, max_date, ignore):
                 if ((not min_date or date >= min_date) and (not max_date or date <= max_date)):
                     tags = read_tags(file_path)
                     source_title = tags.get('title')
-                    artist, title = extract_artist_and_title(source_title)
+                    artist, title = extract_artist_and_title(unsnake(source_title))
                     if artist and title and (
                         not ignore or source_title not in ignore
                     ):
