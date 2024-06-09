@@ -132,9 +132,9 @@ def scan(source, target, min_date, max_date, ignore):
                     if artist and title and (
                         not ignore or source_title not in ignore
                     ):
-                        if source_title not in source_tracks:
-                            source_tracks[source_title] = []
-                        bisect.insort(source_tracks[source_title], {
+                        if f'{artist} - {title}' not in source_tracks:
+                            source_tracks[f'{artist} - {title}'] = []
+                        bisect.insort(source_tracks[f'{artist} - {title}'], {
                             "file_path": file_path,
                             "mtime": mtime,
                             "date": date,
