@@ -35,11 +35,11 @@ def valid_date(date):
     except ValueError:
         raise argparse.ArgumentTypeError(f"not a valid date: {date}")
 
-def split_artist_and_title(artist_and_title):
+def split_artist_and_title(source_title):
     title = None
     artist = None
-    if ' - ' in artist_and_title:
-        artist, title = artist_and_title.split(' - ', 1)
+    if ' - ' in source_title:
+        artist, title = source_title.split(' - ', 1)
     return title, artist
 
 def read_tags(file_path):
@@ -127,14 +127,14 @@ def scan(source, target, min_date, max_date, ignore):
                 date = time.strftime('%Y-%m-%d', time.localtime(mtime))
                 if ((not min_date or date >= min_date) and (not max_date or date <= max_date)):
                     tags = read_tags(file_path)
-                    artist_and_title = tags.get('title')
-                    title, artist = split_artist_and_title(artist_and_title)
+                    source_title = tags.get('title')
+                    title, artist = split_artist_and_title(source_title)
                     if title and artist and (
-                        not ignore or artist_and_title not in ignore
+                        not ignore or source_title not in ignore
                     ):
-                        if artist_and_title not in source_tracks:
-                            source_tracks[artist_and_title] = []
-                        bisect.insort(source_tracks[artist_and_title], {
+                        if source_title not in source_tracks:
+                            source_tracks[source_title] = []
+                        bisect.insort(source_tracks[source_title], {
                             "file_path": file_path,
                             "mtime": mtime,
                             "date": date,
@@ -144,10 +144,10 @@ def scan(source, target, min_date, max_date, ignore):
                     else:
                         if not title or not artist:
                             ignored_tracks['__no_title__'] += 1
-                        elif artist_and_title not in ignored_tracks:
-                            ignored_tracks[artist_and_title] = 1
+                        elif source_title not in ignored_tracks:
+                            ignored_tracks[source_title] = 1
                         else:
-                            ignored_tracks[artist_and_title] += 1
+                            ignored_tracks[source_title] += 1
             bar.update(i)
             i += 1
 
@@ -181,7 +181,7 @@ def summarize(source_tracks, target_tracks, overwrite):
         "new_tracks": 0
     }
 
-    for artist_and_title, tracks in source_tracks.items():
+    for source_title, tracks in source_tracks.items():
         for track in tracks:
             date = track['date']
             if date not in summary['by_date']:
@@ -194,7 +194,7 @@ def summarize(source_tracks, target_tracks, overwrite):
             summary['by_date'][date]['total'] += 1
             if track == tracks[(0, -1)[overwrite == 'always']]:
                 summary['by_date'][date]['unique'] += 1
-                if artist_and_title in target_tracks:
+                if source_title in target_tracks:
                     summary['by_date'][date]['existing'] += 1
                 else:
                     summary['by_date'][date]['new'] += 1
@@ -202,7 +202,7 @@ def summarize(source_tracks, target_tracks, overwrite):
         summary['total_tracks'] += len(tracks)
         summary['unique_tracks'] += 1
 
-        if artist_and_title in target_tracks:
+        if source_title in target_tracks:
             summary['existing_tracks'] += 1
         else:
             summary['new_tracks'] += 1
@@ -227,10 +227,10 @@ def copy_or_move(
         prefix=('Moving: ', 'Copying: ')[copy]
     ) as bar:
         i = 0
-        for artist_and_title, tracks in source_tracks.items():
-            if (overwrite == 'always' or not artist_and_title in target_tracks):
+        for source_title, tracks in source_tracks.items():
+            if (overwrite == 'always' or not source_title in target_tracks):
                 track = tracks[(0, -1)[overwrite == 'always']]
-                file_name = sanitize_filename(f'{artist_and_title}.ogg')
+                file_name = sanitize_filename(f'{source_title}.ogg')
                 target_file_path = os.path.join(target, file_name)
                 source_file_path = (
                     track['file_path'],
@@ -247,7 +247,7 @@ def copy_or_move(
                     })
                     shutil.move(source_file_path, target_file_path)
                 except Exception as error:
-                    errors[artist_and_title] = error
+                    errors[source_title] = error
                     if copy:
                         if os.path.isfile(source_file_path):
                             os.remove(source_file_path)
