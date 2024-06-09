@@ -35,12 +35,12 @@ def valid_date(date):
     except ValueError:
         raise argparse.ArgumentTypeError(f"not a valid date: {date}")
 
-def split_artist_and_title(source_title):
-    title = None
+def extract_artist_and_title(source_title):
     artist = None
+    title = None
     if ' - ' in source_title:
         artist, title = source_title.split(' - ', 1)
-    return title, artist
+    return artist, title
 
 def read_tags(file_path):
     audio = mutagen.File(file_path)
@@ -128,8 +128,8 @@ def scan(source, target, min_date, max_date, ignore):
                 if ((not min_date or date >= min_date) and (not max_date or date <= max_date)):
                     tags = read_tags(file_path)
                     source_title = tags.get('title')
-                    title, artist = split_artist_and_title(source_title)
-                    if title and artist and (
+                    artist, title = extract_artist_and_title(source_title)
+                    if artist and title and (
                         not ignore or source_title not in ignore
                     ):
                         if source_title not in source_tracks:
@@ -138,11 +138,11 @@ def scan(source, target, min_date, max_date, ignore):
                             "file_path": file_path,
                             "mtime": mtime,
                             "date": date,
-                            "title": title,
                             "artist": artist,
+                            "title": title,
                         }, key=lambda x: x["mtime"])
                     else:
-                        if not title or not artist:
+                        if not artist or not title:
                             ignored_tracks['__no_title__'] += 1
                         elif source_title not in ignored_tracks:
                             ignored_tracks[source_title] = 1
@@ -157,15 +157,15 @@ def scan(source, target, min_date, max_date, ignore):
                 mtime = os.path.getmtime(file_path)
                 date = time.strftime('%Y-%m-%d', time.localtime(mtime))
                 tags = read_tags(file_path)
-                title = tags.get('title')
                 artist = tags.get('artist')
+                title = tags.get('title')
                 if artist and title:
                     target_tracks[f'{artist} - {title}'] = {
                     "file_path": file_path,
                     "mtime": mtime,
                     "date": date,
-                    "title": title,
                     "artist": artist,
+                    "title": title,
                 }
             bar.update(i)
             i += 1
@@ -240,8 +240,8 @@ def copy_or_move(
                     if copy:
                         shutil.copy2(track['file_path'], source_file_path)
                     write_tags(source_file_path, {
-                        'title': track['title'],
                         'artist': track['artist'],
+                        'title': track['title'],
                         'album': album,
                         'genre': genre
                     })
