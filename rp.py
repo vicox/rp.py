@@ -36,13 +36,12 @@ def valid_date(date):
         raise argparse.ArgumentTypeError(f"not a valid date: {date}")
 
 def unsnake(source_title):
-    return source_title.replace('_', ' ')
+    return source_title.replace('_', ' ') if source_title is not None else None
 
 def extract_artist_and_title(source_title):
-    return (
-        [None, None],
-        [x.strip() for x in source_title.split(' - ', 1)]
-    )[' - ' in source_title] 
+    return ((x.strip() for x in source_title.split(' - ', 1))
+        if source_title is not None and ' - ' in source_title 
+        else [None, None])
 
 def read_tags(file_path):
     audio = mutagen.File(file_path)
