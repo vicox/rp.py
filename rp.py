@@ -45,7 +45,7 @@ def extract_artist_and_title(source_title):
 
 def read_tags(file_path):
     audio = mutagen.File(file_path)
-    return dict(map(lambda kv: (kv[0], kv[1][0]), audio.tags.items()))
+    return dict(map(lambda kv: (kv[0], kv[1][0]), audio.tags.items())) if audio is not None else {}
 
 def write_tags(file_path, tags):
     mtime = os.path.getmtime(file_path)
